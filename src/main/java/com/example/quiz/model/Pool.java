@@ -31,4 +31,11 @@ public class Pool {
 	public void setPoolName(String poolName) {
 		this.poolName = poolName;
 	}
+
+	@Override
+	public String toString() {
+		return "Pool [id=" + id + ", poolName=" + poolName + "]";
+	}
+	
+	
 }

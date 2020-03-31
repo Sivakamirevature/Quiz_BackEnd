@@ -11,6 +11,7 @@ import com.example.quiz.exceptions.ServiceExceptions;
 import com.example.quiz.model.Category;
 import com.example.quiz.model.Level;
 import com.example.quiz.model.Pool;
+import com.example.quiz.model.Question;
 import com.example.quiz.model.Quiz;
 import com.example.quiz.model.Quiz_Question;
 
@@ -52,11 +53,6 @@ public class QuizServiceImpl implements IQuizService {
 	}
 
 	@Override
-	public List<Quiz_Question> getPoolQuestions(int qid, String poolname) throws DBExceptions {
-		return quizdao.getPoolQuestions(qid, poolname);
-	}
-
-	@Override
 	public Quiz cloneQuiz(Quiz quiz) throws ServiceExceptions, DBExceptions {
 		return quizdao.cloneQuiz(quiz);
 	}
@@ -78,5 +74,10 @@ public class QuizServiceImpl implements IQuizService {
 	@Override
 	public int deleteQuestion(int id) throws ServiceExceptions, DBExceptions {
 		return quizdao.deleteQuestion(id);
+	}
+
+	@Override
+	public List<Question> getQuestionsByQuizID(int id, String poolName) {
+		return quizdao.getQuestionsByQuizID(id, poolName);
 	}
 }

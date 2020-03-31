@@ -1,6 +1,8 @@
 package com.example.quiz.dao;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.persistence.TypedQuery;
 
@@ -9,10 +11,13 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.client.RestTemplate;
+
 import com.example.quiz.exceptions.DBExceptions;
 import com.example.quiz.model.Category;
 import com.example.quiz.model.Level;
 import com.example.quiz.model.Pool;
+import com.example.quiz.model.Question;
 import com.example.quiz.model.Quiz;
 import com.example.quiz.model.Quiz_Question;
 
@@ -20,6 +25,9 @@ import com.example.quiz.model.Quiz_Question;
 public class QuizDaoImpl implements IQuizDao {
 	@Autowired
 	SessionFactory sessionFactory;
+	
+	@Autowired
+	RestTemplate restTemplate;
 
 	Transaction transaction;
 
@@ -76,6 +84,7 @@ public class QuizDaoImpl implements IQuizDao {
 			quiz.setCreated_by("Sivakami");
 			quiz.setModified_on(today);
 			quiz.setModified_by("Sivakami");
+			System.out.println("for question Id: "+quiz);
 			quiz.getQuizQuestionObj().forEach(quizObj -> quizObj.setQuiz(quiz));
 			session.save(quiz);
 			transaction.commit();
@@ -173,26 +182,6 @@ public class QuizDaoImpl implements IQuizDao {
 	}
 
 	@Override
-	public List<Quiz_Question> getPoolQuestions(int qid, String poolname) throws DBExceptions {
-		Session session = null;
-		System.out.println("pool Name: " + poolname);
-		List<Quiz_Question> questions;
-		try {
-			session = sessionFactory.getCurrentSession();
-			questions = session.createQuery(
-					"from Quiz_Question where quiz_id = " + qid
-							+ " and pool_id = (select id from Pool where poolName = '" + poolname + "')",
-					Quiz_Question.class).getResultList();
-			System.out.println("Questions: " + questions);
-		} catch (Exception e) {
-			throw new DBExceptions("Cannot Find the id", e);
-		} finally {
-			session.close();
-		}
-		return questions;
-	}
-
-	@Override
 	public Quiz cloneQuiz(Quiz quiz) throws DBExceptions {
 		Session session = null;
 		try {
@@ -268,5 +257,44 @@ public class QuizDaoImpl implements IQuizDao {
 		transaction.commit();
 		session.close();
 		return id;
+	}
+
+	@Override
+	public List<Question> getQuestionsByQuizID(int id, String poolName) {
+		List<Quiz_Question> quizQuestionList = null;
+		List<Integer> questionIds = new ArrayList<Integer>();
+		List<Question> questionList = null;
+		Session session = null;
+		String SQuestionIds = "";
+		try {
+			session = sessionFactory.getCurrentSession();
+			quizQuestionList=  session.createQuery("from Quiz_Question where quiz_id = " + id + " and pool_id = (select id from Pool where poolName =  '"+ poolName + "')",Quiz_Question.class).getResultList();
+			// = ((org.hibernate.query.Query) query).list();
+			if (quizQuestionList.isEmpty()) {
+				System.out.println("quizzes list is: " + quizQuestionList);
+			}
+			else {
+				int length = quizQuestionList.size();
+				System.out.println("Quiz Question List: "+ length);
+				//System.out.println("Quiz Question Object: "+quizQuestionList);
+				for(int i=0;i<length;i++) {
+					System.out.println("id : "+quizQuestionList.get(i).getQuestion_id());
+					int value = quizQuestionList.get(i).getQuestion_id();
+					System.out.println("value: "+value);
+					questionIds.add(value);
+				}
+				SQuestionIds += questionIds.get(0);
+				for(int i = 1 ; i<questionIds.size();i++){
+					SQuestionIds += ",";
+					SQuestionIds += questionIds.get(i);
+				}
+				System.out.println("Question Ids from dao: "+SQuestionIds);
+			}
+			Question[] questions = (Question[]) restTemplate.getForObject("http://localhost:9004/questions/getQuestions/"+SQuestionIds, Question[].class);
+			questionList= Arrays.asList(questions);
+			System.out.println("Question List: "+ questionList);
+		} 
+		catch(Exception e) {}
+		return questionList;
 	}
 }

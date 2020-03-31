@@ -6,6 +6,7 @@ import com.example.quiz.exceptions.ServiceExceptions;
 import com.example.quiz.model.Category;
 import com.example.quiz.model.Level;
 import com.example.quiz.model.Pool;
+import com.example.quiz.model.Question;
 import com.example.quiz.model.Quiz;
 import com.example.quiz.model.Quiz_Question;
 
@@ -25,8 +26,6 @@ public interface IQuizService {
 
 	Quiz UpdateById(Quiz quiz) throws ServiceExceptions, DBExceptions;
 
-	List<Quiz_Question> getPoolQuestions(int qid, String poolname) throws ServiceExceptions, DBExceptions;
-
 	Quiz cloneQuiz(Quiz quiz) throws ServiceExceptions, DBExceptions;
 
 	List<Category> getCategory()throws ServiceExceptions, DBExceptions;
@@ -36,4 +35,6 @@ public interface IQuizService {
 	List<Pool> getPool() throws ServiceExceptions, DBExceptions;
 
 	int deleteQuestion(int id) throws ServiceExceptions, DBExceptions;
+
+	List<Question> getQuestionsByQuizID(int id, String poolName);
 }
