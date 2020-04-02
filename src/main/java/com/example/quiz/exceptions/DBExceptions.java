@@ -1,23 +1,24 @@
 package com.example.quiz.exceptions;
 
-public class DBExceptions extends Exception {
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-	public DBExceptions(String string, Exception e) {
-		// TODO Auto-generated constructor stub
+public class DBExceptions extends Exception {
+	
+	private final static Logger LOGGER =  Logger.getLogger(Logger.GLOBAL_LOGGER_NAME); 
+	
+	public DBExceptions() {
+		super();
+	}
+	public DBExceptions(String string) {
+		super(string);
 	}
 
-	public DBExceptions() {
-		// TODO Auto-generated constructor stub
+	public DBExceptions(String string, Exception e) {
+		super(string, e);
 	}
 
 	public void IDNotFound(String string) {
-		// TODO Auto-generated method stub
-		
+		LOGGER.log(Level.INFO,string);
 	}
-
-	public void IDNotFound(String string, NullPointerException e) {
-		// TODO Auto-generated method stub
-		
-	}
-
 }

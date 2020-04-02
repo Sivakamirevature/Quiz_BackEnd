@@ -36,5 +36,7 @@ public interface IQuizService {
 
 	int deleteQuestion(int id) throws ServiceExceptions, DBExceptions;
 
-	List<Question> getQuestionsByQuizID(int id, String poolName);
+	List<Question> getQuestionsByQuizID(int id, String poolName) throws DBExceptions;
+
+	List<Question> getAllQuestions() throws DBExceptions;
 }

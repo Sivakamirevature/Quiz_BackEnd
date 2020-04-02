@@ -1,5 +1,6 @@
 package com.example.quiz.dao;
 
+import java.sql.SQLException;
 import java.util.List;
 import com.example.quiz.exceptions.DBExceptions;
 import com.example.quiz.model.Category;
@@ -35,5 +36,7 @@ public interface IQuizDao {
 
 	int deleteQuestion(int id) throws DBExceptions ;
 
-	List<Question> getQuestionsByQuizID(int id, String poolName);
+	List<Question> getQuestionsByQuizID(int id, String poolName) throws DBExceptions;
+
+	List<Question> getAllQuestions() throws DBExceptions;
 }

@@ -13,6 +13,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.validation.constraints.NotEmpty;
 
 import org.springframework.stereotype.Component;
 
@@ -23,6 +24,7 @@ public class Quiz {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Integer quiz_id;
+	@NotEmpty(message = "Quiz name can not be null")
 	private String quiz_name;
 	private String tags;
 	private short activity_points;
@@ -62,7 +64,7 @@ public class Quiz {
 	private Category category;
 	private boolean status;
 	private String mode;
-	@OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	private List<Quiz_Question> quizQuestionObj;
 
 	public boolean isStatus() {
