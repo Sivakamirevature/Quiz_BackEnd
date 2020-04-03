@@ -18,16 +18,23 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 @ControllerAdvice
 public class CustomExceptionHandler {
 	
-	@ResponseStatus(value = HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(BadRequestException.class)
-    public final ResponseEntity<Object> RequestBodyError(BadRequestException ex) {
-        List<String> details = new ArrayList<>();
-        details.add(ex.getLocalizedMessage());
-        ErrorResponse error = new ErrorResponse("Record Not Found", details);
-        return new ResponseEntity(error, HttpStatus.NOT_FOUND);
-    }
+//	@ResponseStatus(value = HttpStatus.BAD_REQUEST)
+//    @ExceptionHandler(BadRequestException.class)
+//    public final ResponseEntity<Object> RequestBodyError(BadRequestException ex) {
+//        List<String> details = new ArrayList<>();
+//        details.add(ex.getLocalizedMessage());
+//        ErrorResponse error = new ErrorResponse("Request body no satisfied", details);
+//        return new ResponseEntity(error, HttpStatus.NOT_FOUND);
+//    }
 	
-	@ExceptionHandler(Exception.class)
+
+	    @ResponseStatus(HttpStatus.NOT_FOUND)
+	    @ExceptionHandler(NoHandlerFoundException.class)
+	    public String handle404() {
+	        return "exceptions/404page";
+	    }
+	
+	@ExceptionHandler({Exception.class,BadRequestException.class})
     public final ResponseEntity handleAllExceptions(Exception ex, WebRequest request) {
         List<String> details = new ArrayList<>();
         details.add(ex.getLocalizedMessage());

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException.BadRequest;
 
 import com.example.quiz.dao.IQuizDao;
+import com.example.quiz.exceptions.BadRequestException;
 import com.example.quiz.exceptions.DBExceptions;
 import com.example.quiz.exceptions.ServiceExceptions;
 import com.example.quiz.model.Category;
@@ -46,8 +47,13 @@ public class QuizServiceImpl implements IQuizService, Serializable{
 
 	@Override
 	public Quiz createQuiz(Quiz quiz) throws ServiceExceptions, DBExceptions {
-		q = quizdao.createQuiz(quiz);
-		return q;
+		try {
+			q = quizdao.createQuiz(quiz);
+			return q;
+		}
+		catch(BadRequestException e) {
+			throw new BadRequestException("Request Body not ok");
+		}	
 	}
 
 	@Override
@@ -77,7 +83,15 @@ public class QuizServiceImpl implements IQuizService, Serializable{
 
 	@Override
 	public List<Level> getLevel() throws ServiceExceptions, DBExceptions {
+		try {
 		return quizdao.getLevel();
+		}
+//		catch(BadRequest e) {
+//			throw new BadRequestException("Request body not correct");
+//		}
+		catch(Exception e) {
+			throw new ServiceExceptions("Service Exception");
+		}
 	}
 
 	public List<Pool> getPool() throws ServiceExceptions, DBExceptions {

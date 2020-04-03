@@ -15,6 +15,10 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotEmpty;
 
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -64,7 +68,10 @@ public class Quiz {
 	private Category category;
 	private boolean status;
 	private String mode;
-	@OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	
+	@Fetch(FetchMode.SUBSELECT)
+	@LazyCollection(LazyCollectionOption.FALSE)
+	@OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL)
 	private List<Quiz_Question> quizQuestionObj;
 
 	public boolean isStatus() {

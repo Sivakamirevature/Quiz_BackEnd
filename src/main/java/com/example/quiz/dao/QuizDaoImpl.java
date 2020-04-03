@@ -14,9 +14,11 @@ import org.hibernate.Transaction;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.DataException;
 import org.hibernate.exception.SQLGrammarException;
+import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.client.HttpClientErrorException.BadRequest;
 import org.springframework.web.client.RestTemplate;
 
 import com.example.quiz.exceptions.DBExceptions;
@@ -48,7 +50,6 @@ public class QuizDaoImpl implements IQuizDao {
 			TypedQuery<Quiz> query = session.createQuery("from Quiz");
 			quizzes = ((org.hibernate.query.Query) query).list();
 			if (quizzes.isEmpty()) {
-				System.out.println("quizzes list is: " + quizzes);
 				dbExceptions.IDNotFound("Given Id is not found");
 			}
 		} 
@@ -121,6 +122,9 @@ public class QuizDaoImpl implements IQuizDao {
 			if(e.getCause() instanceof ConstraintViolationException) 
 			{
      		throw new DBExceptions("Quiz Name and Slug Should not be Repeated");
+			}
+			if(e instanceof BadRequest) {
+				throw new DBExceptions("Request body missing some data");
 			}
 			if(e instanceof Exception) {
 				throw new DBExceptions("Unable to insert the Record");
@@ -336,7 +340,7 @@ public class QuizDaoImpl implements IQuizDao {
 			throw new DBExceptions("SQL syntax error, invalid object references,");
 		}
 		catch(HibernateException e) {
-		     throw new DBExceptions("Constraint Violation Exceptions",e);
+		     throw new DBExceptions("Persistence Related Issue",e);
 		}
 		catch(Exception e) {
 			throw new DBExceptions("Unable to update",e);
@@ -351,7 +355,10 @@ public class QuizDaoImpl implements IQuizDao {
 	public int deleteQuestion(int id) throws DBExceptions {
 		Session session = sessionFactory.getCurrentSession();
 		transaction = session.beginTransaction();
-		session.delete(session.get(Quiz_Question.class, id));
+		String hql = "DELETE FROM Quiz_Question WHERE id=:id";
+		Query query = session.createQuery(hql);
+		query.setParameter("id",id);
+		int rowCount = query.executeUpdate();
 		transaction.commit();
 		session.close();
 		return id;
