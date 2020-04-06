@@ -156,12 +156,12 @@ public class QuizDaoImpl implements IQuizDao {
 	@Override
 	public Quiz updateById(Quiz quiz) throws DBExceptions {
 		Session session = null;
-		int id = 0;
+		Integer id = 0;
 		try {
 			session = sessionFactory.getCurrentSession();
 			transaction = session.beginTransaction();
 			id = quiz.getQuiz_id();
-			System.out.println("id Count1" + id);
+			System.out.println("Quiz id "+id);
 			int modified_count = ((Integer) session
 					.createSQLQuery("SELECT modified_count from quiz_settings where quiz_id=" + id + " LIMIT 1")
 					.uniqueResult()).intValue();
@@ -176,7 +176,8 @@ public class QuizDaoImpl implements IQuizDao {
 			quiz.getQuizQuestionObj().forEach(quizObj -> quizObj.setQuiz(quiz));
 			session.update(quiz);
 			transaction.commit();
-		} catch (NullPointerException e) {
+		
+	} catch (NullPointerException e) {
 			throw new DBExceptions("Cannot Find the id", e);
 		} catch (DataException e) {
 			throw new DBExceptions("Mismatched types or incorrect cardinality");
@@ -188,10 +189,6 @@ public class QuizDaoImpl implements IQuizDao {
 			if (e.getCause() instanceof ConstraintViolationException) {
 				throw new DBExceptions("Quiz Name and Slug Should not be Repeated");
 			}
-			if (e.getCause() instanceof BadRequestException) {
-				throw new DBExceptions("Request body missing some data");
-			}
-
 			if (e instanceof Exception) {
 				throw new DBExceptions("Unable to insert the Record");
 			}

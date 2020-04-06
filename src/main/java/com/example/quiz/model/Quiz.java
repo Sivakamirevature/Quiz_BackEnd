@@ -27,7 +27,6 @@ public class Quiz {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Integer quiz_id;
-	@NotEmpty(message = "Quiz name can not be null")
 	private String quiz_name;
 	private String tags;
 	private short activity_points;
