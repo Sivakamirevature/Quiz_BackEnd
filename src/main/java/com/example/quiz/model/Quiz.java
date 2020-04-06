@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -68,7 +67,7 @@ public class Quiz {
 	private Category category;
 	private boolean status;
 	private String mode;
-	
+
 	@Fetch(FetchMode.SUBSELECT)
 	@LazyCollection(LazyCollectionOption.FALSE)
 	@OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL)
@@ -353,6 +352,7 @@ public class Quiz {
 	public void setCategory(Category category) {
 		this.category = category;
 	}
+
 	public boolean isIs_show_whether_correct() {
 		return is_show_whether_correct;
 	}

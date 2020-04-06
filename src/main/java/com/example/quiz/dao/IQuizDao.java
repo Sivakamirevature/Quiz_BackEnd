@@ -1,6 +1,6 @@
 package com.example.quiz.dao;
 
-import java.sql.SQLException;
+
 import java.util.List;
 import com.example.quiz.exceptions.DBExceptions;
 import com.example.quiz.model.Category;
@@ -8,7 +8,6 @@ import com.example.quiz.model.Level;
 import com.example.quiz.model.Pool;
 import com.example.quiz.model.Question;
 import com.example.quiz.model.Quiz;
-import com.example.quiz.model.Quiz_Question;
 
 public interface IQuizDao {
 
@@ -23,8 +22,6 @@ public interface IQuizDao {
 	Quiz updateById(Quiz quiz)throws DBExceptions;
 
 	int activeDeactiveQuiz(int qid)throws DBExceptions;
-	
-	int DeleteAllQuizzes() throws DBExceptions;
 
 	Quiz cloneQuiz(Quiz quiz)throws DBExceptions;
 

@@ -1,6 +1,5 @@
 package com.example.quiz.dao;
 
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,9 +17,9 @@ import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Repository;
-import org.springframework.web.client.HttpClientErrorException.BadRequest;
 import org.springframework.web.client.RestTemplate;
 
+import com.example.quiz.exceptions.BadRequestException;
 import com.example.quiz.exceptions.DBExceptions;
 import com.example.quiz.model.Category;
 import com.example.quiz.model.Level;
@@ -31,7 +30,7 @@ import com.example.quiz.model.Quiz_Question;
 
 @Repository
 public class QuizDaoImpl implements IQuizDao {
-	
+
 	@Autowired
 	SessionFactory sessionFactory;
 
@@ -50,13 +49,13 @@ public class QuizDaoImpl implements IQuizDao {
 			TypedQuery<Quiz> query = session.createQuery("from Quiz");
 			quizzes = ((org.hibernate.query.Query) query).list();
 			if (quizzes.isEmpty()) {
-				dbExceptions.IDNotFound("Given Id is not found");
+				throw new DBExceptions("Given Id is not found");
 			}
-		} 
-		catch(DataAccessException e) {
-			throw new DBExceptions();
-		}
-		finally {
+		} catch (DataAccessException e) {
+			throw new DBExceptions("Can not fetch the Datum since the problem with Database");
+		} catch (Exception e) {
+			throw new DBExceptions("Can not fetch the Data");
+		} finally {
 			session.close();
 		}
 		return quizzes;
@@ -74,93 +73,83 @@ public class QuizDaoImpl implements IQuizDao {
 			query.setParameter("id", id);
 			quizzesList = ((org.hibernate.query.Query) query).list();
 			if (quizzesList.isEmpty()) {
-				dbExceptions.IDNotFound("Given Id is not found");
+				throw new DBExceptions("Given Id is not found");
 			}
-		}
-		catch (NullPointerException e) {
+		} catch (NullPointerException e) {
 			throw new DBExceptions("Id not found", e);
-		}
-		catch (DataAccessException e) {
+		} catch (DataAccessException e) {
 			throw new DBExceptions("Unable to fetch the Data", e);
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			throw new DBExceptions("Exceptions", e);
-		}
-		finally {
+		} finally {
 			session.close();
 		}
 		return quizzesList;
 	}
 
 	@Override
-	public Quiz createQuiz(Quiz quiz) throws DBExceptions{
+	public Quiz createQuiz(Quiz quiz) throws DBExceptions {
 		Session session = null;
 		try {
-		session = sessionFactory.getCurrentSession();
-		transaction = session.beginTransaction();
-		LocalDateTime today = LocalDateTime.now();
-		quiz.setSlug("https://qa.revature.com/Revature Pro/quiz/" + quiz.getSlug());
-		quiz.setCreated_on(today);
-		quiz.setCreated_by("Sivakami");
-		quiz.setModified_on(today);
-		quiz.setModified_by("Sivakami");
-		quiz.setModified_by("Sivakami");
-		quiz.getQuizQuestionObj().forEach(quizObj -> quizObj.setQuiz(quiz));
-		session.save(quiz);
-		transaction.commit();
-		}
-		catch(DataException e) {
+			session = sessionFactory.getCurrentSession();
+			transaction = session.beginTransaction();
+			LocalDateTime today = LocalDateTime.now();
+			quiz.setSlug("https://qa.revature.com/Revature Pro/quiz/" + quiz.getSlug());
+			quiz.setCreated_on(today);
+			quiz.setCreated_by("Sivakami");
+			quiz.setModified_on(today);
+			quiz.setModified_by("Sivakami");
+			quiz.setModified_by("Sivakami");
+			quiz.getQuizQuestionObj().forEach(quizObj -> quizObj.setQuiz(quiz));
+			session.save(quiz);
+			transaction.commit();
+		} catch (DataException e) {
 			throw new DBExceptions("Mismatched types or incorrect cardinality");
-		}
-		catch(SQLGrammarException e) {
+		} catch (SQLGrammarException e) {
 			throw new DBExceptions("SQL syntax error, invalid object references,");
-		}
-		catch(HibernateException e) {
-		        throw new DBExceptions("Object can not persist",e);
-		}
-		catch(Throwable e) {
-			if(e.getCause() instanceof ConstraintViolationException) 
-			{
-     		throw new DBExceptions("Quiz Name and Slug Should not be Repeated");
+		} catch (HibernateException e) {
+			throw new DBExceptions("Object can not persist", e);
+		} catch (Throwable e) {
+			if (e.getCause() instanceof ConstraintViolationException) {
+				throw new DBExceptions("Quiz Name and Slug Should not be Repeated");
 			}
-			if(e instanceof BadRequest) {
+			if (e.getCause() instanceof BadRequestException) {
 				throw new DBExceptions("Request body missing some data");
 			}
-			if(e instanceof Exception) {
+
+			if (e instanceof Exception) {
 				throw new DBExceptions("Unable to insert the Record");
 			}
-		}
-		finally {
-		session.close();
+		} finally {
+			session.close();
 		}
 		return quiz;
 	}
 
 	@Override
-	public int DeleteAllQuizzes() {
+	public int deleteById(int qid) throws DBExceptions {
 		Session session = null;
-		DBExceptions dbExceptions = new DBExceptions();
-		int id = 0;
 		try {
 			session = sessionFactory.getCurrentSession();
 			transaction = session.beginTransaction();
-			org.hibernate.query.Query query = session.createQuery("truncate table Quiz");
-			id = query.executeUpdate();
-		} catch (NullPointerException e) {
-			dbExceptions.IDNotFound("Nothing will deleted");
+			session.delete(session.get(Quiz.class, qid));
+			transaction.commit();
+		} catch (DataException e) {
+			throw new DBExceptions("Mismatched types or incorrect cardinality");
+		} catch (SQLGrammarException e) {
+			throw new DBExceptions("SQL syntax error, invalid object references,");
+		} catch (HibernateException e) {
+			throw new DBExceptions("Object can not persist", e);
+		} catch (Throwable e) {
+			if (e.getCause() instanceof BadRequestException) {
+				throw new DBExceptions("Request body missing some data");
+			}
+			if (e instanceof Exception) {
+				throw new DBExceptions("Unable to insert the Record");
+			}
+		} finally {
+			session.close();
 		}
-		transaction.commit();
-		session.close();
-		return id;
-	}
-
-	@Override
-	public int deleteById(int qid) {
-		Session session = sessionFactory.getCurrentSession();
-		transaction = session.beginTransaction();
-		session.delete(session.get(Quiz.class, qid));
-		transaction.commit();
-		session.close();
 		return qid;
 	}
 
@@ -189,21 +178,25 @@ public class QuizDaoImpl implements IQuizDao {
 			transaction.commit();
 		} catch (NullPointerException e) {
 			throw new DBExceptions("Cannot Find the id", e);
-		} 
-		catch(DataException e) {
+		} catch (DataException e) {
 			throw new DBExceptions("Mismatched types or incorrect cardinality");
-		}
-		catch(SQLGrammarException e) {
+		} catch (SQLGrammarException e) {
 			throw new DBExceptions("SQL syntax error, invalid object references,");
-		}
-		catch(HibernateException e) {
-		     throw new DBExceptions("Constraint Violation Exceptions",e);
-		}
-		catch(Exception e) {
-			throw new DBExceptions("Unable to update",e);
-		}
-		finally {
-		session.close();
+		} catch (HibernateException e) {
+			throw new DBExceptions("Constraint Violation Exceptions", e);
+		} catch (Throwable e) {
+			if (e.getCause() instanceof ConstraintViolationException) {
+				throw new DBExceptions("Quiz Name and Slug Should not be Repeated");
+			}
+			if (e.getCause() instanceof BadRequestException) {
+				throw new DBExceptions("Request body missing some data");
+			}
+
+			if (e instanceof Exception) {
+				throw new DBExceptions("Unable to insert the Record");
+			}
+		} finally {
+			session.close();
 		}
 		return quiz;
 	}
@@ -230,21 +223,16 @@ public class QuizDaoImpl implements IQuizDao {
 			transaction.commit();
 		} catch (NullPointerException e) {
 			throw new DBExceptions("Cannot Find the id", e);
-		} 
-		catch(DataException e) {
+		} catch (DataException e) {
 			throw new DBExceptions("Mismatched types or incorrect cardinality");
-		}
-		catch(SQLGrammarException e) {
+		} catch (SQLGrammarException e) {
 			throw new DBExceptions("SQL syntax error, invalid object references,");
-		}
-		catch(HibernateException e) {
-		     throw new DBExceptions("Constraint Violation Exceptions",e);
-		}
-		catch(Exception e) {
-			throw new DBExceptions("Unable to update",e);
-		}
-		finally {
-		session.close();
+		} catch (HibernateException e) {
+			throw new DBExceptions("Constraint Violation Exceptions", e);
+		} catch (Exception e) {
+			throw new DBExceptions("Unable to update", e);
+		} finally {
+			session.close();
 		}
 		return id;
 	}
@@ -263,18 +251,23 @@ public class QuizDaoImpl implements IQuizDao {
 			transaction.commit();
 		} catch (NullPointerException e) {
 			throw new DBExceptions("Due to id mismatch cant do the clone operation", e);
-		} 
-		catch(DataException e) {
+		} catch (DataException e) {
 			throw new DBExceptions("Mismatched types or incorrect cardinality");
-		}
-		catch(HibernateException e) {
-		     throw new DBExceptions("Constraint Violation Exceptions",e);
-		}
-		catch(Exception e) {
-			throw new DBExceptions("Unable to update",e);
-		}
-		finally {
-		session.close();
+		} catch (HibernateException e) {
+			throw new DBExceptions("Constraint Violation Exceptions", e);
+		} catch (Throwable e) {
+			if (e.getCause() instanceof ConstraintViolationException) {
+				throw new DBExceptions("Quiz Name and Slug Should not be Repeated");
+			}
+			if (e.getCause() instanceof BadRequestException) {
+				throw new DBExceptions("Request body missing some data");
+			}
+
+			if (e instanceof Exception) {
+				throw new DBExceptions("Unable to insert the Record");
+			}
+		} finally {
+			session.close();
 		}
 		return quiz;
 	}
@@ -287,8 +280,15 @@ public class QuizDaoImpl implements IQuizDao {
 			session = sessionFactory.getCurrentSession();
 			TypedQuery<Quiz> query = session.createQuery("from Category");
 			categoryList = ((org.hibernate.query.Query) query).list();
+			if (categoryList.isEmpty()) {
+				throw new DBExceptions("Given Id is not found");
+			}
+		} catch (DataAccessException e) {
+			throw new DBExceptions("Can not fetch data due to Database Error");
 		} catch (NullPointerException e) {
 			throw new DBExceptions("Due to id mismatch cant do the clone operation", e);
+		} catch (Exception e) {
+			throw new DBExceptions("Can not Fetch the data");
 		} finally {
 			session.close();
 		}
@@ -303,22 +303,17 @@ public class QuizDaoImpl implements IQuizDao {
 			session = sessionFactory.getCurrentSession();
 			TypedQuery<Quiz> query = session.createQuery("from Level");
 			levelList = ((org.hibernate.query.Query) query).list();
+			if (levelList.isEmpty()) {
+				throw new DBExceptions("Given Id is not found");
+			}
+		} catch (DataAccessException e) {
+			throw new DBExceptions("Can not fetch data due to Database Error");
 		} catch (NullPointerException e) {
 			throw new DBExceptions("Due to id mismatch cant do the clone operation", e);
-		} catch(DataException e) {
-			throw new DBExceptions("Mismatched types or incorrect cardinality");
-		}
-		catch(SQLGrammarException e) {
-			throw new DBExceptions("SQL syntax error, invalid object references,");
-		}
-		catch(HibernateException e) {
-		     throw new DBExceptions("Constraint Violation Exceptions",e);
-		}
-		catch(Exception e) {
-			throw new DBExceptions("Unable to update",e);
-		}
-		finally {
-		session.close();
+		} catch (Exception e) {
+			throw new DBExceptions("Can not Fetch the data");
+		} finally {
+			session.close();
 		}
 		return levelList;
 	}
@@ -331,36 +326,48 @@ public class QuizDaoImpl implements IQuizDao {
 			session = sessionFactory.getCurrentSession();
 			TypedQuery<Quiz> query = session.createQuery("from Pool");
 			poolList = ((org.hibernate.query.Query) query).list();
+			if (poolList.isEmpty()) {
+				throw new DBExceptions("Given Id is not found");
+			}
+		} catch (DataAccessException e) {
+			throw new DBExceptions("Can not fetch data due to Database Error");
 		} catch (NullPointerException e) {
 			throw new DBExceptions("Due to id mismatch cant do the clone operation", e);
-		} catch(DataException e) {
-			throw new DBExceptions("Mismatched types or incorrect cardinality");
-		}
-		catch(SQLGrammarException e) {
-			throw new DBExceptions("SQL syntax error, invalid object references,");
-		}
-		catch(HibernateException e) {
-		     throw new DBExceptions("Persistence Related Issue",e);
-		}
-		catch(Exception e) {
-			throw new DBExceptions("Unable to update",e);
-		}
-		finally {
-		session.close();
+		} catch (Exception e) {
+			throw new DBExceptions("Can not Fetch the data");
+		} finally {
+			session.close();
 		}
 		return poolList;
 	}
 
 	@Override
 	public int deleteQuestion(int id) throws DBExceptions {
-		Session session = sessionFactory.getCurrentSession();
-		transaction = session.beginTransaction();
-		String hql = "DELETE FROM Quiz_Question WHERE id=:id";
-		Query query = session.createQuery(hql);
-		query.setParameter("id",id);
-		int rowCount = query.executeUpdate();
-		transaction.commit();
-		session.close();
+		Session session = null;
+		try {
+			session = sessionFactory.getCurrentSession();
+			transaction = session.beginTransaction();
+			String hql = "DELETE FROM Quiz_Question WHERE id=:id";
+			Query query = session.createQuery(hql);
+			query.setParameter("id", id);
+			int rowCount = query.executeUpdate();
+			transaction.commit();
+		} catch (DataException e) {
+			throw new DBExceptions("Mismatched types or incorrect cardinality");
+		} catch (SQLGrammarException e) {
+			throw new DBExceptions("SQL syntax error, invalid object references,");
+		} catch (HibernateException e) {
+			throw new DBExceptions("Object can not persist", e);
+		} catch (Throwable e) {
+			if (e.getCause() instanceof BadRequestException) {
+				throw new DBExceptions("Request body missing some data");
+			}
+			if (e instanceof Exception) {
+				throw new DBExceptions("Unable to insert the Record");
+			}
+		} finally {
+			session.close();
+		}
 		return id;
 	}
 
@@ -378,7 +385,7 @@ public class QuizDaoImpl implements IQuizDao {
 							+ " and pool_id = (select id from Pool where poolName =  '" + poolName + "')",
 					Quiz_Question.class).getResultList();
 			if (quizQuestionList.isEmpty()) {
-				System.out.println("quizzes list is: " + quizQuestionList);
+				throw new DBExceptions("Question list empty");
 			} else {
 				int length = quizQuestionList.size();
 				System.out.println("Quiz Question List: " + length);
@@ -397,22 +404,15 @@ public class QuizDaoImpl implements IQuizDao {
 			Question[] questions = (Question[]) restTemplate
 					.getForObject("http://localhost:9004/questions/getQuestions/" + SQuestionIds, Question[].class);
 			questionList = Arrays.asList(questions);
-			System.out.println("Question List: " + questionList);
-		} 
-		catch(DataException e) {
-			throw new DBExceptions("Mismatched types or incorrect cardinality");
+		} catch (DataAccessException e) {
+			throw new DBExceptions("Can not fetch data due to Database Error");
+		} catch (NullPointerException e) {
+			throw new DBExceptions("Due to id mismatch cant do the clone operation", e);
 		}
-		catch(SQLGrammarException e) {
-			throw new DBExceptions("SQL syntax error, invalid object references,");
-		}
-		catch(HibernateException e) {
-		     throw new DBExceptions("Constraint Violation Exceptions",e);
-		}
-		catch(Exception e) {
-			throw new DBExceptions("Unable to update",e);
-		}
-		finally {
-		session.close();
+		catch (Exception e) {
+			throw new DBExceptions("Can not Fetch the data");
+		} finally {
+			session.close();
 		}
 		return questionList;
 	}
@@ -420,18 +420,22 @@ public class QuizDaoImpl implements IQuizDao {
 	@Override
 	public List<Question> getAllQuestions() throws DBExceptions {
 		List<Question> questionList;
-		DBExceptions dbExceptions = null;
-		try {	
-		Question[] questions = (Question[]) restTemplate.getForObject("http://localhost:9004/questions/activated",
-				Question[].class);
-		questionList = Arrays.asList(questions);
-		if (questionList.isEmpty()) {
-			dbExceptions.IDNotFound("Given Id is not found");
+		try {
+			Question[] questions = (Question[]) restTemplate.getForObject("http://localhost:9004/questions/activated",
+					Question[].class);
+			questionList = Arrays.asList(questions);
+			if (questionList.isEmpty()) {
+				throw new DBExceptions("Given Id is not found");
+			}
+		} catch (DataAccessException e) {
+			throw new DBExceptions("Can not fetch data due to Database Error");
+		} catch (NullPointerException e) {
+			throw new DBExceptions("Due to id mismatch cant do the clone operation", e);
+		} catch (SQLGrammarException e) {
+			throw new DBExceptions("SQL syntax error, invalid object references,");
+		} catch (Exception e) {
+			throw new DBExceptions("Can not Fetch the data");
 		}
-	} 
-	catch(DataAccessException e) {
-		throw new DBExceptions();
-	}
 		return questionList;
 	}
 }

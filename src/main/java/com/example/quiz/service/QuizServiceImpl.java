@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.List;
 
 import org.hibernate.service.NullServiceException;
+import org.hibernate.service.spi.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException.BadRequest;
@@ -18,9 +19,9 @@ import com.example.quiz.model.Pool;
 import com.example.quiz.model.Question;
 import com.example.quiz.model.Quiz;
 
-
 @Service
-public class QuizServiceImpl implements IQuizService, Serializable{
+public class QuizServiceImpl implements IQuizService, Serializable {
+	private static final long serialversionUID = 129348938L;
 	@Autowired
 	IQuizDao quizdao;
 	@Autowired
@@ -29,20 +30,20 @@ public class QuizServiceImpl implements IQuizService, Serializable{
 	public List<Quiz> getAllQuizzes() throws ServiceExceptions, DBExceptions {
 		List<Quiz> QuizLists = null;
 		try {
-			QuizLists =  quizdao.getAllQuizzes();
+			QuizLists = quizdao.getAllQuizzes();
+			return QuizLists;
+		} catch (NullServiceException e) {
+			throw new ServiceExceptions("unable to fetch list of Quizzes");
 		}
-		catch(NullServiceException e) {
-			throw new ServiceExceptions("unable to fetch");
-		}
-		catch(BadRequest e) {
-			
-		}
-		return QuizLists;
 	}
 
 	@Override
 	public List<Quiz> getQuizByID(int id) throws ServiceExceptions, DBExceptions {
-		return quizdao.getQuizByID(id);
+		try {
+			return quizdao.getQuizByID(id);
+		} catch (NullServiceException e) {
+			throw new ServiceExceptions("unable to fetch the Quiz");
+		}
 	}
 
 	@Override
@@ -50,66 +51,101 @@ public class QuizServiceImpl implements IQuizService, Serializable{
 		try {
 			q = quizdao.createQuiz(quiz);
 			return q;
+		} catch (NullServiceException e) {
+			throw new ServiceException("Service not Available");
+		} catch (BadRequest e) {
+			throw new BadRequestException("Bad Request");
 		}
-		catch(BadRequestException e) {
-			throw new BadRequestException("Request Body not ok");
-		}	
 	}
 
 	@Override
 	public int DeleteById(int qid) throws ServiceExceptions, DBExceptions {
-		return quizdao.deleteById(qid);
+		try {
+			return quizdao.deleteById(qid);
+		} catch (NullServiceException e) {
+			throw new ServiceException("Service not Available");
+		} catch (Exception e) {
+			throw new ServiceException("sevice Exception");
+		}
 	}
 
 	@Override
 	public Quiz UpdateById(Quiz quiz) throws ServiceExceptions, DBExceptions {
-		return quizdao.updateById(quiz);
+		try {
+			return quizdao.updateById(quiz);
+		} catch (NullServiceException e) {
+			throw new ServiceException("Service not Available");
+		}
 	}
 
 	@Override
 	public int activeDeactiveQuiz(int qid) throws ServiceExceptions, DBExceptions {
-		return quizdao.activeDeactiveQuiz(qid);
+		try {
+			return quizdao.activeDeactiveQuiz(qid);
+		} catch (NullServiceException e) {
+			throw new ServiceException("Service not Available");
+		}
 	}
 
 	@Override
 	public Quiz cloneQuiz(Quiz quiz) throws ServiceExceptions, DBExceptions {
-		return quizdao.cloneQuiz(quiz);
+		try {
+			return quizdao.cloneQuiz(quiz);
+		} catch (NullServiceException e) {
+			throw new ServiceException("Service not Available");
+		}
 	}
 
 	@Override
 	public List<Category> getCategory() throws ServiceExceptions, DBExceptions {
-		return quizdao.getCategory();
+		try {
+			return quizdao.getCategory();
+		} catch (NullServiceException e) {
+			throw new ServiceException("Service not Available");
+		}
 	}
 
 	@Override
 	public List<Level> getLevel() throws ServiceExceptions, DBExceptions {
 		try {
-		return quizdao.getLevel();
-		}
-//		catch(BadRequest e) {
-//			throw new BadRequestException("Request body not correct");
-//		}
-		catch(Exception e) {
+			return quizdao.getLevel();
+		} catch (NullServiceException e) {
 			throw new ServiceExceptions("Service Exception");
 		}
 	}
 
 	public List<Pool> getPool() throws ServiceExceptions, DBExceptions {
-		return quizdao.getPool();
+		try {
+			return quizdao.getPool();
+		} catch (NullServiceException e) {
+			throw new ServiceExceptions("Service Exception");
+		}
 	}
 
 	@Override
 	public int deleteQuestion(int id) throws ServiceExceptions, DBExceptions {
-		return quizdao.deleteQuestion(id);
+		try {
+			return quizdao.deleteQuestion(id);
+		} catch (NullServiceException e) {
+			throw new ServiceExceptions("Service Exception");
+		}
 	}
 
 	@Override
 	public List<Question> getQuestionsByQuizID(int id, String poolName) throws DBExceptions {
-		return quizdao.getQuestionsByQuizID(id, poolName);
+		try {
+			return quizdao.getQuestionsByQuizID(id, poolName);
+		} catch (NullServiceException e) {
+			throw new ServiceExceptions("Service Exception");
+		}
 	}
 
 	@Override
 	public List<Question> getAllQuestions() throws DBExceptions {
-		return quizdao.getAllQuestions();
+		try {
+			return quizdao.getAllQuestions();
+		} catch (NullServiceException e) {
+			throw new ServiceExceptions("Service Exception");
+		}
 	}
 }

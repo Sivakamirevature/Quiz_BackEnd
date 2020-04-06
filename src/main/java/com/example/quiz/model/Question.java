@@ -1,10 +1,6 @@
 package com.example.quiz.model;
 import java.sql.Time;
 
-
-
-
-
 public class Question {
 	private int id;
 
@@ -126,5 +122,17 @@ public class Question {
 		this.option = option;
 	}
 	
+	public Types getType() {
+		return type;
+	}
+
+	public void setType(Types type) {
+		this.type = type;
+	}
+
+	public void setLevel(Level level) {
+		this.level = level;
+	}
+
 	public Question() {}
 }

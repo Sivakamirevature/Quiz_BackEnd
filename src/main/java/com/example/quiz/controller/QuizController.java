@@ -13,10 +13,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.HttpClientErrorException.BadRequest;
 import org.springframework.web.client.RestTemplate;
 
-import com.example.quiz.exceptions.BadRequestException;
 import com.example.quiz.exceptions.DBExceptions;
 import com.example.quiz.exceptions.RecordNotFoundException;
 import com.example.quiz.exceptions.ServiceExceptions;
@@ -48,14 +46,7 @@ public class QuizController {
 	@GetMapping(value = "/getAllQuizzes")
 	public ResponseEntity getAllQuizzes() throws ServiceExceptions, DBExceptions {
 		List<Quiz> quizList = null;
-		//try {
 			quizList = quizservice.getAllQuizzes();	
-//		} catch (BadRequest e) {
-//			throw new BadRequestException("Bad Request");
-//		}
-//		catch(Exception e) {
-//			
-//		}
 		return new ResponseEntity(HttpStatus.OK.value(), "Data Fetched Successfully", quizList);
 	}
 
@@ -74,20 +65,13 @@ public class QuizController {
 	public ResponseEntity getQuestionsByQuizID(@PathVariable int id, @PathVariable String poolName) throws DBExceptions {
 		List<Question> questionList = null;
 		questionList = quizservice.getQuestionsByQuizID(id, poolName);
-		return new ResponseEntity(HttpStatus.CREATED.value() ,"Data Inserted Successfully", questionList);	
+		return new ResponseEntity(HttpStatus.OK.value() ,"Data Inserted Successfully", questionList);	
 	}
 
 	@PostMapping(value = "/doCreateQuiz")
 	public ResponseEntity doCreateQuiz(@RequestBody Quiz quiz) throws ServiceExceptions, DBExceptions {
-		//try {	
 		quiz = quizservice.createQuiz(quiz);
 		return new ResponseEntity(HttpStatus.CREATED.value() ,"Data Inserted Successfully", quiz);
-		//}
-//		catch(DBExceptions e) {
-//			throw new BadRequestException("Can't insert");
-//		}
-		
-		
 	}
 
 	@PutMapping(value = "/doActiveDeactiveQuiz/{qid}")
