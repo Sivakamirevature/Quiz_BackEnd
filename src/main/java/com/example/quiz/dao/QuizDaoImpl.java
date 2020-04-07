@@ -51,7 +51,10 @@ public class QuizDaoImpl implements IQuizDao {
 			if (quizzes.isEmpty()) {
 				throw new DBExceptions("Given Id is not found");
 			}
-		} catch (DataAccessException e) {
+		}catch(NullPointerException e) {
+			throw new DBExceptions("Null Value returned");
+		}
+		catch (DataAccessException e) {
 			throw new DBExceptions("Can not fetch the Datum since the problem with Database");
 		} catch (Exception e) {
 			throw new DBExceptions("Can not fetch the Data");
@@ -242,7 +245,7 @@ public class QuizDaoImpl implements IQuizDao {
 			transaction = session.beginTransaction();
 			quiz.setQuiz_id(null);
 			quiz.setCreated_by("Sivakami");
-			quiz.setSlug("https://qa.revature.com/Revature Pro/quiz/" + quiz.getSlug() + "-copy");
+			quiz.setSlug("https://qa.revature.com/Revature Pro/quiz/" + quiz.getSlug());
 			quiz.getQuizQuestionObj().forEach(quizObj -> quizObj.setQuiz(quiz));
 			session.save(quiz);
 			transaction.commit();
@@ -283,7 +286,7 @@ public class QuizDaoImpl implements IQuizDao {
 		} catch (DataAccessException e) {
 			throw new DBExceptions("Can not fetch data due to Database Error");
 		} catch (NullPointerException e) {
-			throw new DBExceptions("Due to id mismatch cant do the clone operation", e);
+			throw new DBExceptions("Null value Returned", e);
 		} catch (Exception e) {
 			throw new DBExceptions("Can not Fetch the data");
 		} finally {
@@ -306,7 +309,7 @@ public class QuizDaoImpl implements IQuizDao {
 		} catch (DataAccessException e) {
 			throw new DBExceptions("Can not fetch data due to Database Error");
 		} catch (NullPointerException e) {
-			throw new DBExceptions("Due to id mismatch cant do the clone operation", e);
+			throw new DBExceptions("Null value returned", e);
 		} catch (Exception e) {
 			throw new DBExceptions("Can not Fetch the data");
 		} finally {
